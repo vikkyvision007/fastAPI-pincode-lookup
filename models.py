@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 
 class PincodeRequest(BaseModel):
@@ -16,8 +16,8 @@ class PincodeRequest(BaseModel):
 class PincodeResponse(BaseModel):
     pincode: str
     city: str
-    state: str
-    district: str   
+    state: str = Field(validation_alias=AliasChoices("state", "State"))
+    district: str = Field(validation_alias=AliasChoices("district", "District"))
 
 class BulkRequest(BaseModel):
     pincodes: list[str]
@@ -28,10 +28,7 @@ class BulkRequest(BaseModel):
         if len(pincodes) == 0:
             raise ValueError("Pincodes list cannot be empty")
         if len(pincodes) > 10:
-            raise ValueError("Pincodes list cannot contain more than 10 pincodes")        
-        for pincode in pincodes:
-            if not pincode.isdigit() or len(pincode) != 6:
-                raise ValueError(f"Each Pincode '{pincode}' must be exactly six digits")
+            raise ValueError("Pincodes list cannot contain more than 10 pincodes")
         return pincodes
 
 class BulkResponse(BaseModel):
@@ -39,5 +36,6 @@ class BulkResponse(BaseModel):
     found: int
     not_found: int
     results: list[PincodeResponse]
+    missing: list[str]
 
 
